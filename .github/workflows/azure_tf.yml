@@ -1,0 +1,80 @@
+name: 'Terraform'
+ 
+on:
+  workflow_dispatch
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: developement
+ 
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+ 
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - uses: hashicorp/setup-terraform@v1
+
+    - run: terraform init
+    
+    # Normally you would use continue-on-error: false
+    # An unresolveable error in the variables.tf
+    # file requires this workaround so far.
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color
+      env:
+        TF_VAR_client_id: ${{ secrets.AZURE_AD_CLIENT_ID }}
+        TF_VAR_client_secret: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_AD_TENANT_ID }}
+        TF_VAR_web_app_name: ${{ secrets.WEBAPP }}
+ 
+  terraformapply:
+    name: 'Terraform Apply'
+    needs: [terraform]
+    runs-on: ubuntu-latest
+    environment: production
+ 
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+      
+    - uses: hashicorp/setup-terraform@v1
+
+    - run: terraform init
+    - name: Terraform Apply
+      id: apply
+      # if: github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve -no-color
+      env:
+        TF_VAR_client_id: ${{ secrets.AZURE_AD_CLIENT_ID }}
+        TF_VAR_client_secret: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_AD_TENANT_ID }}
+        TF_VAR_web_app_name: ${{ secrets.WEBAPP }}
