@@ -50,7 +50,7 @@ resource "azurerm_app_service" "website" {
   app_service_plan_id = azurerm_app_service_plan.sp1.id
 
   site_config {
-    linux_fx_version = "NODE|10-lts"
+    linux_fx_version = "NODE|16-lts"
     scm_type         = "LocalGit"
   }
 }
