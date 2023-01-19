@@ -91,7 +91,7 @@ jobs:
       # if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -no-color
 
-  terraformdetroy:
+  terraformdestroy:
     if: ${{ github.event.inputs.destroy == 'true' }}
     name: 'Terraform Destroy'
     needs: [terraform]
