@@ -27,7 +27,7 @@ env:
   TF_VAR_location: ${{ secrets.LOC }}
 
 jobs:
-  terraform:
+  terraformprepare:
     name: 'Terraform'
     runs-on: ubuntu-latest
     environment: development
@@ -68,7 +68,7 @@ jobs:
   terraformapply:
     if: ${{ github.event.inputs.destroy == 'false' }}
     name: 'Terraform Apply'
-    needs: [terraform]
+    needs: [terraformprepare]
     runs-on: ubuntu-latest
     environment: production
  
@@ -94,7 +94,7 @@ jobs:
   terraformdestroy:
     if: ${{ github.event.inputs.destroy == 'true' }}
     name: 'Terraform Destroy'
-    needs: [terraform]
+    needs: [terraformprepare]
     runs-on: ubuntu-latest
     environment: production
  
